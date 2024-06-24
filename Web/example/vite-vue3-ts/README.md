@@ -1,25 +1,36 @@
-# Quick Run of TUIRoom Web Demo
+# Quick Run of TUIRoomKit Web Demo
 
 English | [简体中文](README.zh.md)
 
-This document describes how to quickly run the TUIRoom demo project to try out group audio/video interaction. 
-## Directory structure
+This document describes how to quickly run the TUIRoomKit demo project to try out group audio/video interaction. If you need to integrate TUIRoomKit into your existing business, please refer to [TUIRoomKit Integration](https://trtc.io/document/54845?platform=web&product=conference).
+
+> Notice：<br>
+> This example project integrates with the TUIRoomKit npm package [@tencentcloud/roomkit-web-vue3
+](https://www.npmjs.com/package/@tencentcloud/roomkit-web-vue3). This npm package provides a pre-conference preview component, an in-conference component, and methods for starting conference, joining conference, and fine-tuning the interface. For more, see [TUIRoomKit API](https://trtc.io/document/54880?platform=web&product=conference). If these APIs don't meet your business needs, you can refer to [TUIRoomKit source code export](https://trtc.io/document/54851?platform=web&product=conference#method-2.3A-modify-the-uikit-source-code) for accessing the TUIRoomKit source code.
+
+## Directory
 
 ```
 .
 ├── README.md
+├── README.zh.md
+├── index.html
+├── package.json
 ├── public
+│   └── favicon.ico
 ├── src
-│   ├── App.vue  // main page of the sample project
-│   ├── TUIRoom  // TUIRoom UI component source files
-│   ├── config   // TUIRoom configuration file
-│   ├── main.ts  // Example project entry file
-│   ├── router          // Example project routing configuration
-│   ├── shims-tsx.d.ts
-│   ├── shims-vue.d.ts
-│   └── views           // Example project routing page
+│   ├── App.vue         -- Sample Project Main Page
+│   ├── config          -- User information configuration file and test userSig generation file
+│   ├── env.d.ts
+│   ├── locales         -- Local language, support English, Chinese
+│   ├── main.ts         -- Sample Project Entry File
+│   ├── router          -- Sample Project Routing Configuration
+│   ├── utils
+│   └── views           -- Sample project pages (including pre-conference preview pages and in-conference page)
 ├── tsconfig.json
-└── vue.config.js   // vue configuration file
+├── tsconfig.node.json
+├── useRoomExtension.js
+└── vite.config.ts
 ```
 
 ### Step 1. Create a TRTC application
@@ -34,11 +45,10 @@ This document describes how to quickly run the TUIRoom demo project to try out g
 
 ### Step 2: Download the source code and configure the project
 1. Clone or download the source code in our repository (**You can start the repository to save it**).
-2. Find and open `Web/vue2/src/config/basic-info-config.js`.
-
+2. Find and open `Web/example/vite-vue3-ts/src/config/basic-info-config.js`.
 3. Configure parameters in `basic-info-config.js`:
+
 	<img src="https://qcloudimg.tencent-cloud.cn/raw/36fc2cb8a3cc8a90a02d1ab0d9e4ffb7.png" width="900">
-	
 	- SDKAPPID: 0 by default. Set it to the `SDKAppID` obtained in step 1.
 	- SDKSECRETKEY: '' by default. Set it to the key obtained in step 1.
 
@@ -47,7 +57,7 @@ This document describes how to quickly run the TUIRoom demo project to try out g
 1. install dependencies
 
    ```bash
-   cd TUIRoomKit/Web/vue2
+   cd TUIRoomKit/Web/example/vite-vue3-ts
    
    npm install
    ```
@@ -55,17 +65,12 @@ This document describes how to quickly run the TUIRoom demo project to try out g
 2. Run the sample project in the development environment
 
    ```bash
-   npm run serve
+   npm run dev
    ```
 
-3. Generate the dist folder
-
-   ```bash
-   npm run build
-   ```
 ### Step 4. Try out the demo
 
-Open `http://localhost:8080/#/home` in a browser to try out TUIRoom.
+Open `http://localhost:3000/#/home` in a browser to try out TUIRoomKit.
 
 **Anchor (userId: anchor)**
 
@@ -86,7 +91,7 @@ Open `http://localhost:8080/#/home` in a browser to try out TUIRoom.
 | <img src="https://qcloudimg.tencent-cloud.cn/raw/6e0db32e8497c00221018a80bd7ceaab.png" width="320"/> | <img src="https://qcloudimg.tencent-cloud.cn/raw/c3982208a81f5b0f774c5bfadc6e7b99.png" width="320"/> |
 
 ### Step 5: Production Environment Deployment
-- 1. Generate the dist folder
+- 1. Generate deployment files
 
    ```bash
    npm run build
@@ -109,4 +114,4 @@ Make sure you used an HTTPS URL. For the sake of data security and privacy prote
 - Welcome to join our Telegram Group to communicate with our professional engineers! We are more than happy to hear from you~
 Click to join: [https://t.me/+EPk6TMZEZMM5OGY1](https://t.me/+EPk6TMZEZMM5OGY1)   
 Or scan the QR code   
-  <img src="https://qcloudimg.tencent-cloud.cn/raw/79cbfd13877704ff6e17f30de09002dd.jpg" width="300px">    
+  <img src="https://qcloudimg.tencent-cloud.cn/raw/79cbfd13877704ff6e17f30de09002dd.jpg" width="300px">

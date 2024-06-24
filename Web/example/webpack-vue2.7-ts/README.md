@@ -1,28 +1,40 @@
-# Quick Run of TUIRoom Web Demo
+# Quick Run of TUIRoomKit Web Demo
 
 English | [简体中文](README.zh.md)
 
-This document describes how to quickly run the TUIRoom demo project to try out group audio/video interaction.
+This document describes how to quickly run the TUIRoomKit demo project to try out group audio/video interaction. If you need to integrate TUIRoomKit into your existing business, please refer to [TUIRoomKit Integration](https://trtc.io/document/54845?platform=web&product=conference).
 
-## Directory structure
+> Notice：<br>
+> This example project integrates with the TUIRoomKit npm package [@tencentcloud/roomkit-web-vue2.7
+](https://www.npmjs.com/package/@tencentcloud/roomkit-web-vue2.7). This npm package provides a pre-conference preview component, an in-conference component, and methods for starting conference, joining conference, and fine-tuning the interface. For more, see [TUIRoomKit API](https://trtc.io/document/54880?platform=web&product=conference). If these APIs don't meet your business needs, you can refer to [TUIRoomKit source code export](https://trtc.io/document/54851?platform=web&product=conference#method-2.3A-modify-the-uikit-source-code) for accessing the TUIRoomKit source code.
+
+## Directory
 
 ```
 .
 ├── README.md
-├── auto-imports.d.ts
-├── components.d.ts
-├── index.html
-├─ src
-│ ├─ App.vue // main page of the sample project
-│ ├── TUIRoom // TUIRoom UI component source files
-│ ├── assets // public resources
-│ ├── config // TUIRoom configuration file
-│ ├── env.d.ts
-│ ├── main.ts // Example project entry file
-│ ├── router // Example project routing configuration
-│ └── views // Example project routing page
-└── vite.config.ts
+├── README.zh.md
+├── babel.config.js
+├── jsconfig.json
+├── package-lock.json
+├── package.json
+├── public
+│   ├── favicon.ico
+│   └── index.html
+├── src
+│   ├── App.vue          -- Sample Project Main Page
+│   ├── config           -- User information configuration file and test userSig generation file
+│   ├── locales          -- Local language, support English, Chinese
+│   ├── main.ts          -- Sample Project Entry File
+│   ├── router           -- Sample Project Routing Configuration
+│   ├── shims-tsx.d.ts
+│   ├── shims-vue.d.ts
+│   ├── utils
+│   └── views            -- Sample project pages (including pre-conference preview pages and in-conference page)
+├── tsconfig.json
+└── vue.config.js
 ```
+
 ### Step 1. Create a TRTC application
 1. Enter the [Application Management](https://www.tencentcloud.com/account/login) interface of the Tencent Cloud Live Audio/Video Console, select Create Application, enter the application name,click **Create Application**.
 2. Find your application in the application list and Click **Application Info**.
@@ -35,7 +47,7 @@ This document describes how to quickly run the TUIRoom demo project to try out g
 
 ### Step 2: Download the source code and configure the project
 1. Clone or download the source code in our repository (**You can start the repository to save it**).
-2. Find and open `Web/vue3/src/config/basic-info-config.js`.
+2. Find and open `Web/example/webpack-vue2.7-ts/src/config/basic-info-config.js`.
 3. Configure parameters in `basic-info-config.js`:
 
 	<img src="https://qcloudimg.tencent-cloud.cn/raw/36fc2cb8a3cc8a90a02d1ab0d9e4ffb7.png" width="900">
@@ -47,7 +59,7 @@ This document describes how to quickly run the TUIRoom demo project to try out g
 1. install dependencies
 
    ```bash
-   cd TUIRoomKit/Web/vue3
+   cd TUIRoomKit/Web/example/webpack-vue2.7-ts
    
    npm install
    ```
@@ -55,19 +67,12 @@ This document describes how to quickly run the TUIRoom demo project to try out g
 2. Run the sample project in the development environment
 
    ```bash
-   npm run dev
+   npm run serve
    ```
 
-3. Generate a DIST file
-
-   ```bash
-   npm run build
-   ```
 ### Step 4. Try out the demo
 
-Open `http://localhost:3000/#/home` in a browser to try out TUIRoom.
-
-Because Element Plus components are imported manually, it may take a relatively long time for the page to load in the development environment for the first time. This will not be an issue after building.
+Open `http://localhost:8080/#/home` in a browser to try out TUIRoomKit.
 
 **Anchor (userId: anchor)**
 
@@ -88,7 +93,7 @@ Because Element Plus components are imported manually, it may take a relatively 
 | <img src="https://qcloudimg.tencent-cloud.cn/raw/6e0db32e8497c00221018a80bd7ceaab.png" width="320"/> | <img src="https://qcloudimg.tencent-cloud.cn/raw/c3982208a81f5b0f774c5bfadc6e7b99.png" width="320"/> |
 
 ### Step 5: Production Environment Deployment
-- 1. Generate a DIST file
+- 1. Generate deployment files
 
    ```bash
    npm run build
