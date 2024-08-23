@@ -26,28 +26,55 @@ export default function useEndControl() {
   logger.log(`${logPrefix} basicStore:`, basicStore);
 
   const roomStore = useRoomStore();
-  const { localUser, remoteUserList, applyToAnchorList } = storeToRefs(roomStore);
-  const title = computed(() => (currentDialogType.value === DialogType.BasicDialog ? t('Leave room?') : t('Select a new host')));
-  const isShowLeaveRoomDialog = computed(() => (
-    roomStore.isMaster && remoteUserList.value.length > 0)
-  || !roomStore.isMaster);
+  const { localUser, remoteEnteredUserList, applyToAnchorList } =
+    storeToRefs(roomStore);
+  const title = computed(() =>
+    currentDialogType.value === DialogType.BasicDialog
+      ? t('Leave room?')
+      : t('Select a new host')
+  );
+  const isShowLeaveRoomDialog = computed(
+    () =>
+      (roomStore.isMaster && remoteEnteredUserList.value.length > 0) ||
+      !roomStore.isMaster
+  );
   const { isSidebarOpen, sidebarName } = storeToRefs(basicStore);
   const showSideBar = computed(() => isSidebarOpen.value && sidebarName.value === 'transfer-leave');
   const selectedUser: Ref<string> = ref('');
   const showTransfer = ref(false);
   const searchName = ref('');
-  const filteredList = computed(() => remoteUserList.value.filter(searchUser => (searchUser.nameCard?.includes(searchName.value)) || (searchUser.userId.includes(searchName.value)) || (searchUser.userName?.includes(searchName.value))));
-  const hasNoData = computed(() => filteredList.value.length === 0);
-  const isMasterWithOneRemoteUser = computed(() => remoteUserList.value.length === 1);
-  const isMasterWithRemoteUser = computed(() => remoteUserList.value.length > 0);
-  const isMasterWithoutRemoteUser = computed(() => roomStore.isMaster && remoteUserList.value.length === 0);
-  const showEndButtonContent = computed(() => (roomStore.isMaster ? t('EndPC') : t('Leave')));
-  const showEndDialogContent = computed(() => (
-    roomStore.isMaster ? (isMasterWithoutRemoteUser.value
-      ? t('You are currently the host of the room, please choose the corresponding operation. If you choose "End Room", the current room will be disbanded and all members will be removed.')
-      : t('You are currently the host of the room, please choose the corresponding operation. If you choose "End Room", the current room will be disbanded and all members will be removed. If you choose "Leave Room", the current room will not be disbanded, and your hosting privileges will be transferred to other members.')
+  const filteredList = computed(() =>
+    remoteEnteredUserList.value.filter(
+      searchUser =>
+        searchUser.nameCard?.includes(searchName.value) ||
+        searchUser.userId.includes(searchName.value) ||
+        searchUser.userName?.includes(searchName.value)
     )
-      : t('Are you sure you want to leave this room?')));
+  );
+  const hasNoData = computed(() => filteredList.value.length === 0);
+  const isMasterWithOneRemoteUser = computed(
+    () => remoteEnteredUserList.value.length === 1
+  );
+  const isMasterWithRemoteUser = computed(
+    () => remoteEnteredUserList.value.length > 0
+  );
+  const isMasterWithoutRemoteUser = computed(
+    () => roomStore.isMaster && remoteEnteredUserList.value.length === 0
+  );
+  const showEndButtonContent = computed(() =>
+    roomStore.isMaster ? t('EndPC') : t('Leave')
+  );
+  const showEndDialogContent = computed(() =>
+    roomStore.isMaster
+      ? isMasterWithoutRemoteUser.value
+        ? t(
+            'You are currently the host of the room, please choose the corresponding operation. If you choose "End Room", the current room will be disbanded and all members will be removed.'
+          )
+        : t(
+            'You are currently the host of the room, please choose the corresponding operation. If you choose "End Room", the current room will be disbanded and all members will be removed. If you choose "Leave Room", the current room will not be disbanded, and your hosting privileges will be transferred to other members.'
+          )
+      : t('Are you sure you want to leave this room?')
+  );
   function toggleMangeMemberSidebar() {
     if (basicStore.setSidebarOpenStatus && sidebarName.value === 'transfer-leave') {
       basicStore.setSidebarOpenStatus(false);
@@ -209,6 +236,6 @@ export default function useEndControl() {
     showSideBar,
     isMasterWithOneRemoteUser,
     isMasterWithRemoteUser,
-    remoteUserList,
+    remoteEnteredUserList,
   };
 }

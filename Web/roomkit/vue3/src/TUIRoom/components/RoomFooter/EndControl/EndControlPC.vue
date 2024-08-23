@@ -20,7 +20,7 @@
         <div>
           <tui-select v-model="selectedUser" :teleported="false" :popper-append-to-body="false" theme="white">
             <tui-option
-              v-for="user in remoteUserList"
+              v-for="user in remoteEnteredUserList"
               :key="user.userId"
               :value="user.userId"
               :label="user.nameCard || user.userName"
@@ -82,7 +82,7 @@ const {
   resetState,
   isMasterWithOneRemoteUser,
   isMasterWithRemoteUser,
-  remoteUserList,
+  remoteEnteredUserList,
 } = useEndControl();
 
 function handleEndBtnClick() {
@@ -94,7 +94,7 @@ function handleEndLeaveClick() {
     return;
   }
   if (isMasterWithRemoteUser.value) {
-    selectedUser.value = remoteUserList.value[0].userId;
+    selectedUser.value = remoteEnteredUserList.value[0].userId;
     if (isMasterWithOneRemoteUser.value) {
       transferAndLeave();
       return;

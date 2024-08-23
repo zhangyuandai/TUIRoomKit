@@ -8,6 +8,7 @@ import {
   TUIVideoQuality,
   TUIVideoStreamType,
   TUIMediaDeviceType,
+  TUIInvitationStatus,
 } from '@tencentcloud/tuiroom-engine-js';
 import { useBasicStore } from './basic';
 import { set, del } from '../utils/vue';
@@ -62,9 +63,11 @@ export type UserInfo = {
   inviteToAnchorRequestId?: string,
   // The meaning of cameraStreamInfo and screenStreamInfo is to keep the stream rendering using the same reference to the passed data,
   // avoiding the problem of inconsistency between the large window and the actual data display.
-  cameraStreamInfo: StreamInfo,
-  screenStreamInfo: StreamInfo,
-}
+  cameraStreamInfo: StreamInfo;
+  screenStreamInfo: StreamInfo;
+  isInRoom?: boolean;
+  status?: TUIInvitationStatus;
+};
 
 interface RoomState {
   localUser: UserInfo,
@@ -109,6 +112,7 @@ export const useRoomStore = defineStore('room', {
       hasScreenStream: false,
       userRole: TUIRole.kGeneralUser,
       onSeat: false,
+      isInRoom: true,
       cameraStreamInfo: {
         userId: '',
         userName: '',
@@ -231,7 +235,11 @@ export const useRoomStore = defineStore('room', {
           hasScreenStream,
           isVideoVisible,
           isScreenVisible,
+          isInRoom,
         } = userInfo;
+        if (!isInRoom) {
+          return;
+        }
         if (onSeat) {
           obj[`${userId}_${TUIVideoStreamType.kCameraStream}`] = Object.assign(userInfo.cameraStreamInfo, { userId, avatarUrl, userName,nameCard, hasAudioStream, hasVideoStream, streamType: TUIVideoStreamType.kCameraStream, isVisible: isVideoVisible });
         }
@@ -262,17 +270,32 @@ export const useRoomStore = defineStore('room', {
     streamNumber(): number {
       return this.streamList.length;
     },
+    remoteEnteredUserList(): Array<UserInfo> {
+      const list = this.remoteUserList.filter(item => item.isInRoom);
+      return list;
+    },
     remoteUserList: state => [...Object.values(state.remoteUserObj)],
     remoteAnchorList: state => [...Object.values(state.remoteUserObj)].filter(item => item.onSeat),
     userList: state => [state.localUser, ...Object.values(state.remoteUserObj)],
     generalUserScreenStreamList: state => [...Object.values(state.remoteUserObj)].filter(item => item.hasScreenStream && item.userRole === TUIRole.kGeneralUser),
     userNumber(): number {
-      return this.userList.length;
+      const list = this.userList.filter(item => item.isInRoom);
+      return list.length;
     },
-    anchorUserList: state => [state.localUser, ...Object.values(state.remoteUserObj)].filter(item => item.onSeat),
-    applyToAnchorList: state => [...Object.values(state.remoteUserObj)]
-      .filter(item => item.isUserApplyingToAnchor)
-      .sort((item1, item2) => (item1?.applyToAnchorTimestamp || 0) - (item2?.applyToAnchorTimestamp || 0)) || [],
+    anchorUserList: state =>
+      [state.localUser, ...Object.values(state.remoteUserObj)].filter(
+        item => item.onSeat
+      ),
+    inviteeList: state =>
+      [...Object.values(state.remoteUserObj)].filter(item => !item.isInRoom),
+    applyToAnchorList: state =>
+      [...Object.values(state.remoteUserObj)]
+        .filter(item => item.isUserApplyingToAnchor)
+        .sort(
+          (item1, item2) =>
+            (item1?.applyToAnchorTimestamp || 0) -
+            (item2?.applyToAnchorTimestamp || 0)
+        ) || [],
     defaultStreamType(): TUIVideoStreamType {
       return Object.keys(this.hasVideoStreamObject).length > this.maxMembersCount
         ? TUIVideoStreamType.kCameraStreamLow : TUIVideoStreamType.kCameraStream;
@@ -289,7 +312,7 @@ export const useRoomStore = defineStore('room', {
   },
   actions: {
     setLocalUser(obj: Record<string, any>) {
-      Object.assign(this.localUser, obj);
+      Object.assign(this.localUser, obj, { isInRoom: true });
     },
     updateLocalStream(obj: Record<string, any>) {
       Object.assign(this.localStream, obj);
@@ -322,6 +345,8 @@ export const useRoomStore = defineStore('room', {
         onSeat: !this.isSpeakAfterTakingSeatMode,
         isUserApplyingToAnchor: false,
         isInvitingUserToAnchor: false,
+        isInRoom: false,
+        status: TUIInvitationStatus.kNone,
         cameraStreamInfo: {
           userId,
           userName: '',
@@ -347,13 +372,19 @@ export const useRoomStore = defineStore('room', {
     updateUserList(userList: any[]) {
       userList.forEach((user) => {
         if (user.userId === this.localUser.userId) {
-          Object.assign(this.localUser, user);
+          Object.assign(this.localUser, user, { isInRoom: true });
           return;
         }
         if (this.remoteUserObj[user.userId]) {
-          Object.assign(this.remoteUserObj[user.userId], user);
+          Object.assign(this.remoteUserObj[user.userId], user, {
+            isInRoom: true,
+          });
         } else {
-          const newUserInfo = Object.assign(this.getNewUserInfo(user.userId), user);
+          const newUserInfo = Object.assign(
+            this.getNewUserInfo(user.userId),
+            user,
+            { isInRoom: true }
+          );
           set(this.remoteUserObj, user.userId, newUserInfo);
         }
       });
@@ -366,9 +397,13 @@ export const useRoomStore = defineStore('room', {
         return;
       }
       if (this.remoteUserObj[userId]) {
-        Object.assign(this.remoteUserObj[userId], userInfo);
+        Object.assign(this.remoteUserObj[userId], userInfo, { isInRoom: true });
       } else {
-        const newUserInfo = Object.assign(this.getNewUserInfo(userId), userInfo);
+        const newUserInfo = Object.assign(
+          this.getNewUserInfo(userId),
+          userInfo,
+          { isInRoom: true }
+        );
         set(this.remoteUserObj, userId, newUserInfo);
       }
     },
@@ -730,6 +765,31 @@ export const useRoomStore = defineStore('room', {
     },
     setOnStageTabStatus(isOnStateTabActive: boolean) {
       this.isOnStateTabActive = isOnStateTabActive;
+    },
+    addInvitee(userInfo: UserInfo) {
+      const { userId } = userInfo;
+      if (this.remoteUserObj[userId]) {
+        Object.assign(this.remoteUserObj[userId], userInfo);
+      } else {
+        const newUserInfo = Object.assign(
+          this.getNewUserInfo(userId),
+          userInfo
+        );
+        set(this.remoteUserObj, userId, newUserInfo);
+      }
+    },
+    updateInviteeList(userList: any[]) {
+      userList.forEach(user => {
+        if (this.remoteUserObj[user.userId]) {
+          Object.assign(this.remoteUserObj[user.userId], user);
+        } else {
+          const newUserInfo = Object.assign(
+            this.getNewUserInfo(user.userId),
+            user
+          );
+          set(this.remoteUserObj, user.userId, newUserInfo);
+        }
+      });
     },
     reset() {
       const basicStore = useBasicStore();

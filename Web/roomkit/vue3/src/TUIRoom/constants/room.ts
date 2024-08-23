@@ -22,3 +22,10 @@ export const SMALL_VIDEO_ENC_PARAM = {
   videoFps: 15,
   videoBitrate: 800,
 };
+
+export enum USERS_STATUS {
+  Entered = 1,
+  ON_STAGE = 1,
+  NOT_ON_STAGE = 2,
+  NOT_ENTER = 3,
+}

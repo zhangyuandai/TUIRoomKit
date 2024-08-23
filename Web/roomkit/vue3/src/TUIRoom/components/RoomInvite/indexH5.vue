@@ -1,21 +1,32 @@
 <template>
-  <div class="invite-container-main">
-    <div class="invite-title-main">
-      <div>{{ t('Invite') }}</div>
-      <span v-tap="handleCloseInvite" class="cancel">{{ t('Cancel') }}</span>
+  <div class="invite-container">
+    <div class="invite-container-main">
+      <div class="invite-title-main">
+        <div>{{ t('Invite') }}</div>
+        <span v-tap="handleCloseInvite" class="cancel">{{ t('Cancel') }}</span>
+      </div>
+      <div
+        v-for="item in visibleInviteContentList"
+        :key="item.id"
+        class="invite-content-main"
+      >
+        <span class="invite-title">{{ t(item.mobileTitle) }}</span>
+        <span class="invite-content">{{ item.content }}</span>
+        <svg-icon
+          v-tap="() => onCopy(item.copyLink)"
+          :icon="CopyIcon"
+          class="copy"
+        />
+      </div>
+      <span class="invite-bottom">
+        {{ inviteBarTitle }}
+      </span>
     </div>
-    <div v-for="item in visibleInviteContentList" :key="item.id" class="invite-content-main">
-      <span class="invite-title">{{ t(item.mobileTitle) }}</span>
-      <span class="invite-content">{{ item.content }}</span>
-      <svg-icon v-tap="() => onCopy(item.copyLink)" :icon="CopyIcon" class="copy"></svg-icon>
-    </div>
-    <span class="invite-bottom">
-      {{ inviteBarTitle }}
-    </span>
   </div>
 </template>
 
 <script setup lang="ts">
+import { defineEmits } from 'vue';
 import SvgIcon from '../common/base/SvgIcon.vue';
 import CopyIcon from '../common/icons/CopyIcon.vue';
 import useRoomInviteControl from './useRoomInviteHooks';
@@ -44,6 +55,19 @@ span{
   line-height: 17px;
   padding-right: 5px;
 }
+
+.invite-container {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 100vw;
+  height: auto;
+  background-color: var(--log-out-mobile);
+}
+
 .invite-container-main {
   width: 100%;
   background: var(--popup-background-color-h5);
@@ -52,6 +76,11 @@ span{
   bottom: 0;
   display: flex;
   flex-direction: column;
+  width: 100vw;
+  padding-bottom: 4vh;
+  background: var(--popup-background-color-h5);
+  border-radius: 15px 15px 0 0;
+  animation-name: popup;
   animation-duration: 200ms;
   animation-name: popup;
   padding-bottom: 4vh;

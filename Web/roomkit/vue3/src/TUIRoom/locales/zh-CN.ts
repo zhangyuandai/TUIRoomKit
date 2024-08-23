@@ -387,4 +387,15 @@ export default {
   'Turn on device privileges': ({ named }: any) => `打开${named('deviceType')}权限`,
   'You can go to "System Preferences - Security & Privacy - Device" to enable device permissions': ({ named }: any) => `你可前往"系统设置 - 隐私与安全性 - ${named('deviceType')}"开启设备权限。`,
   'Go to Settings': '前往设置',
+  addMember: '添加成员',
+  shareRoom: '分享房间',
+  'Invitation sent, waiting for members to join.':
+    '邀请信息已发出，等待成员加入',
+  'Not joining for now': '暂不进入',
+  'Not Entered': '未进入',
+  Entered: '已进房',
+  Call: '呼叫',
+  'Calling...': '呼叫中...',
+  'Calling all': '呼叫所有人',
+  'Busy line': '忙线中',
 };

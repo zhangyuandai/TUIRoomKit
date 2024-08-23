@@ -383,4 +383,15 @@ export default {
   'Turn on device privileges': ({ named }: any) => `Turn on ${named('deviceType')} privileges`,
   'You can go to "System Preferences - Security & Privacy - Device" to enable device permissions': ({ named }: any) => `You can go to "System Preferences - Security & Privacy - ${named('deviceType')}" to enable device permissions.`,
   'Go to Settings': 'Go to Settings',
+  addMember: 'addMember',
+  shareRoom: 'shareRoom',
+  'Invitation sent, waiting for members to join.':
+    'Invitation sent, waiting for members to join.',
+  'Not joining for now': 'Not joining for now',
+  'Not Entered': 'Not Entered',
+  Entered: 'Entered',
+  Call: 'Call',
+  'Calling...': 'Calling...',
+  'Calling all': 'Calling all',
+  'Busy line': 'Busy line',
 };

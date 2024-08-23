@@ -4,24 +4,37 @@
     @mouseenter="openMemberControl"
     @mouseleave="closeMemberControl"
   >
-    <member-info :user-info="props.userInfo" :show-state-icon="!showMemberControl"></member-info>
+    <member-info
+      v-show="props.userCurrentStatus !== USERS_STATUS.NOT_ENTER"
+      :user-info="props.userInfo"
+      :show-state-icon="!showMemberControl"
+    />
     <member-control
-      v-show="showMemberControl"
+      v-show="
+        showMemberControl && props.userCurrentStatus !== USERS_STATUS.NOT_ENTER
+      "
       :show-member-control="showMemberControl"
       :user-info="props.userInfo"
-    ></member-control>
+    />
+    <member-invite
+      v-show="props.userCurrentStatus === USERS_STATUS.NOT_ENTER"
+      :user-info="props.userInfo"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, watch, defineProps } from 'vue';
 import MemberInfo from '../MemberItemCommon/MemberInfo.vue';
 import MemberControl from '../MemberControl';
+import MemberInvite from '../MemberInvite/MemberInvite.vue';
 import { UserInfo } from '../../../stores/room';
 import useMemberItem from './useMemberItemHooks';
-import { ref, watch } from 'vue';
+import { USERS_STATUS } from '../../../constants/room';
 
 interface Props {
-  userInfo: UserInfo,
+  userInfo: UserInfo;
+  userCurrentStatus: USERS_STATUS;
 }
 
 const props = defineProps<Props>();
@@ -41,13 +54,6 @@ watch(isMemberControlAccessible, (accessible: boolean) => {
 </script>
 
 <style lang="scss" scoped>
-.tui-theme-black .member-item-container {
-  --hover-bg-color: rgba(79, 88, 107, 0.2);
-}
-.tui-theme-white .member-item-container {
-  --hover-bg-color: rgba(213, 224, 242, 0.3);
-}
-
 .member-item-container {
   display: flex;
   flex-direction: row;
@@ -59,5 +65,13 @@ watch(isMemberControlAccessible, (accessible: boolean) => {
     cursor: pointer;
     background: var(--hover-bg-color);
   }
+}
+
+.tui-theme-black .member-item-container {
+  --hover-bg-color: rgba(79, 88, 107, 0.2);
+}
+
+.tui-theme-white .member-item-container {
+  --hover-bg-color: rgba(213, 224, 242, 0.3);
 }
 </style>

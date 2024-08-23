@@ -6,6 +6,7 @@ import { LifeCycleManager } from './manager/lifeCycleManager';
 import { ScheduleConferenceManager } from './manager/scheduleConferenceManager';
 import { RoomActionManager } from './manager/roomActionManager';
 import { ErrorHandler } from './function/errorHandler';
+import { ConferenceInvitationManager } from './manager/conferenceInvitationManager';
 export interface IRoomService {
   t: any;
   roomEngine: Record<string, any>;
@@ -15,6 +16,7 @@ export interface IRoomService {
   lifeCycleManager: LifeCycleManager;
   roomActionManager?: RoomActionManager;
   scheduleConferenceManager: ScheduleConferenceManager;
+  conferenceInvitationManager: ConferenceInvitationManager;
   errorHandler: ErrorHandler;
   on: (eventType: EventType, callback: (data?: any) => any) => void;
   off: (eventType: EventType, callback: (data?: any) => void) => void;

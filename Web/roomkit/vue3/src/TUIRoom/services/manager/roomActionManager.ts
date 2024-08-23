@@ -173,7 +173,8 @@ export class RoomActionManager {
       this.service.roomStore.setRoomInfo(roomInfo);
       await this.getUserList();
       await this.syncUserInfo(this.service.basicStore.userId);
-
+      await this.fetchAttendeeList(roomId);
+      await this.getInvitationList(roomId);
       if (roomInfo.isSeatEnabled) {
         await this.getSeatList();
         this.service.roomStore.isMaster
@@ -229,10 +230,59 @@ export class RoomActionManager {
         })) as any;
         this.service.roomStore.updateUserList(result.userInfoList);
         nextSequence = result.nextSequence;
+        console.log('miles-test-userList', result.userInfoList);
       } while (nextSequence !== 0);
     } catch (error: any) {
       logger.error('TUIRoomEngine.getUserList', error.code, error.message);
     }
+  }
+
+  private async getInvitationList(
+    roomId: string,
+    cursor = '',
+    result: any[] = []
+  ) {
+    const res =
+      await this.service.conferenceInvitationManager.getInvitationList({
+        roomId,
+        cursor,
+        count: 20,
+      });
+    if (!res?.invitationList) return [];
+    // eslint-disable-next-line no-unsafe-optional-chaining
+    result.push(...res?.invitationList);
+    if (res.cursor !== '') {
+      await this.getInvitationList(roomId, res.cursor, result);
+    }
+    const list = result.map(({ invitee, status }) => ({
+      ...invitee,
+      status,
+    }));
+    this.service.roomStore.updateInviteeList(list as any);
+  }
+
+  private async fetchAttendeeList(
+    roomId: string,
+    cursor = '',
+    result: any[] = []
+  ) {
+    const res = await this.service.scheduleConferenceManager.fetchAttendeeList({
+      roomId,
+      cursor,
+      count: 20,
+    });
+    if (!res?.attendeeList) return [];
+    // eslint-disable-next-line no-unsafe-optional-chaining
+    result.push(...res?.attendeeList);
+    if (res.cursor !== '') {
+      await this.fetchAttendeeList(roomId, res.cursor, result);
+    }
+    const inviteeList = result.filter(user => {
+      return !this.service.roomStore.userList.some(
+        item => item.userId === user.userId
+      );
+    });
+    this.service.roomStore.updateInviteeList(inviteeList);
   }
 
   private async syncUserInfo(userId: string) {

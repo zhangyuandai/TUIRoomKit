@@ -1,6 +1,11 @@
 <template>
   <div class="tui-checkbox">
-    <input v-model="checked" type="checkbox" @change="handleValueChange" />
+    <input
+      v-model="checked"
+      type="checkbox"
+      :disabled="props.disabled"
+      @change="handleValueChange"
+    />
     <span class="tui-checkbox-slot-container" @click="handleCheckBoxClick">
       <slot></slot>
     </span>
@@ -8,23 +13,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, watch } from 'vue';
+import { ref, Ref, watch, withDefaults, defineProps, defineEmits } from 'vue';
 interface Props {
   modelValue: boolean;
+  disabled: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: false,
+  disabled: false,
   slotCustomStyle: () => ({}),
 });
 const checked: Ref<boolean> = ref(props.modelValue);
 const emit = defineEmits(['input']);
 
-
-watch(() => props.modelValue, (value) => {
-  checked.value = value;
-});
-
+watch(
+  () => props.modelValue,
+  value => {
+    checked.value = props.disabled ? true : value;
+  },
+  { immediate: true }
+);
 
 function handleCheckBoxClick() {
   checked.value = !checked.value;
@@ -63,6 +72,7 @@ input:focus {
 }
 
 input:disabled {
+  cursor: not-allowed;
   background-color: var(--background-color-9);
 }
 </style>

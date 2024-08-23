@@ -44,6 +44,12 @@
         ></schedule-room-list>
       </div>
     </div>
+    <div v-show="showInvitation" class="pre-invitation">
+      <invitationNotification
+        @on-display-invitation="handleDisplayInvitation"
+        @join-conference="handleEnterRoom"
+      />
+    </div>
   </div>
 </template>
 
@@ -60,30 +66,34 @@ import TUIMessageBox from './components/common/base/MessageBox/index';
 import TUIMessage from './components/common/base/Message/index';
 import { MESSAGE_DURATION } from './constants/message';
 import { isMobile } from './utils/environment';
+import invitationNotification from './components/RoomInvite/invitationNotification.vue';
 
 const roomControlRef = ref();
-
-const props = withDefaults(defineProps<{
-  userInfo: {
-    userId: string,
-    userName: string,
-    avatarUrl: string,
-  },
-  showEditNameInPc: boolean,
-  roomId: string,
-  enableScheduledConference: boolean,
-  isShowLogo?: boolean
-}>(), {
-  userInfo: () => ({
-    userId: '',
-    userName: '',
-    avatarUrl: '',
-  }),
-  showEditNameInPc: false,
-  roomId: '',
-  enableScheduledConference: true,
-  isShowLogo: true,
-});
+const showInvitation = ref(false);
+const props = withDefaults(
+  defineProps<{
+    userInfo: {
+      userId: string;
+      userName: string;
+      avatarUrl: string;
+    };
+    showEditNameInPc: boolean;
+    roomId: string;
+    enableScheduledConference: boolean;
+    isShowLogo?: boolean;
+  }>(),
+  {
+    userInfo: () => ({
+      userId: '',
+      userName: '',
+      avatarUrl: '',
+    }),
+    showEditNameInPc: false,
+    roomId: '',
+    enableScheduledConference: true,
+    isShowLogo: true,
+  }
+);
 
 const emits = defineEmits(['on-create-room', 'on-enter-room', 'on-update-user-name', 'on-logout']);
 
@@ -139,6 +149,10 @@ const showMessage = (data: {
     message,
     duration,
   });
+};
+
+const handleDisplayInvitation = () => {
+  showInvitation.value = !showInvitation.value;
 };
 
 onMounted(() => {
@@ -213,6 +227,22 @@ onUnmounted(() => {
       display: flex;
     }
   }
+
+  .pre-invitation {
+    position: fixed;
+    top: 40px;
+    right: 20px;
+    padding: 20px 30px 10px 20px;
+    background-color: var(--white-color);
+    border-radius: 15px;
+  }
 }
 
+.tui-theme-black .pre-conference-container {
+  --background: var(--background-color-1);
+}
+
+.tui-theme-white .pre-conference-container {
+  --background: url('./assets/imgs/background-white.png');
+}
 </style>

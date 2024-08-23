@@ -1,4 +1,4 @@
-import { Ref, computed, nextTick, ref, onMounted } from 'vue';
+import { Ref, computed, nextTick, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import useGetRoomEngine from '../../hooks/useRoomEngine';
 import { UserInfo, useRoomStore } from '../../stores/room';
@@ -10,6 +10,8 @@ import { MESSAGE_DURATION } from '../../constants/message';
 import { isMobile } from '../../utils/environment';
 import AllMembersShareScreenIcon from '../common/icons/AllMembersShareScreenIcon.vue';
 import HostShareScreenIcon from '../common/icons/HostShareScreenIcon.vue';
+import { roomService } from '../../services';
+import { USERS_STATUS } from '../../constants/room';
 
 export default function useIndex() {
   const roomEngine = useGetRoomEngine();
@@ -24,6 +26,7 @@ export default function useIndex() {
     applyToAnchorList,
     isOnStateTabActive,
     generalUserScreenStreamList,
+    inviteeList,
   } = storeToRefs(roomStore);
 
   enum ManageControlType {
@@ -32,12 +35,17 @@ export default function useIndex() {
     SCREEN = 'screen',
   }
 
-  const audienceUserList = computed(() => userList.value.filter(user => !anchorUserList.value.includes(user)));
+  const userCurrentStatusId = ref(USERS_STATUS.Entered);
+
+  const audienceUserList = computed(() => userList.value.filter(user => !anchorUserList.value.includes(user) && user.isInRoom));
+
+  const enterUserList = computed(() => userList.value.filter(user => user.isInRoom));
 
   const searchText = ref('');
   const showMoreControl = ref(false);
 
-  function handleToggleStaged() {
+  function handleToggleStaged(item: any) {
+    userCurrentStatusId.value = item.id;
     isOnStateTabActive.value = !isOnStateTabActive.value;
     roomStore.setOnStageTabStatus(isOnStateTabActive.value);
   }
@@ -54,24 +62,78 @@ export default function useIndex() {
     }
     return list.filter((item: UserInfo) => item.nameCard?.includes(searchText.value) || item.userName?.includes(searchText.value) || item.userId.includes(searchText.value));
   });
-  const alreadyStaged = computed(() => `${t('Already on stage')} (${(anchorUserList.value.length)})`);
-  const notStaged = computed(() => `${t('Not on stage')} (${(audienceUserList.value.length)})`);
 
-  function handleInvite() {
-    basicStore.setSidebarName('invite');
-  }
+  const filteredUserStatusList = computed(() => {
+    let list: any = [];
+    if (roomStore.isFreeSpeakMode) {
+      list =        userCurrentStatusId.value === USERS_STATUS.Entered
+        ? enterUserList.value
+        : inviteeList.value;
+    } else {
+      if (userCurrentStatusId.value === USERS_STATUS.ON_STAGE) {
+        list = anchorUserList.value;
+      } else if (userCurrentStatusId.value === USERS_STATUS.NOT_ON_STAGE) {
+        list = audienceUserList.value;
+      } else {
+        list = inviteeList.value;
+      }
+    }
+    if (!searchText.value) {
+      return list;
+    }
+    return list.filter((item: any) => item.nameCard?.includes(searchText.value)
+        || item.userName?.includes(searchText.value)
+        || item.userId.includes(searchText.value));
+  });
+
+  const alreadyStaged = computed(() => `${t('Already on stage')} (${anchorUserList.value.length})`);
+  const notStaged = computed(() => `${t('Not on stage')} (${audienceUserList.value.length})`);
 
   const audioManageInfo = computed(() => (roomStore.isMicrophoneDisableForAllUser ? t('Lift all mute') : t('All mute')));
-  const videoManageInfo = computed(() => (roomStore.isCameraDisableForAllUser ? t('Lift stop all video') : t('All stop video')));
+  const videoManageInfo = computed(() => (roomStore.isCameraDisableForAllUser
+    ? t('Lift stop all video')
+    : t('All stop video')));
 
-  const moreControlList = computed(() => ([
+  const userStatusList = computed(() => {
+    let list;
+    if (roomStore.isFreeSpeakMode) {
+      list = [
+        {
+          id: USERS_STATUS.Entered,
+          title: `${t('Entered')} (${enterUserList.value.length})`,
+        },
+        {
+          id: USERS_STATUS.NOT_ENTER,
+          title: `${t('Not Entered')} (${inviteeList.value.length})`,
+        },
+      ];
+    } else {
+      list = [
+        {
+          id: USERS_STATUS.ON_STAGE,
+          title: `${t('Already on stage')} (${anchorUserList.value.length})`,
+        },
+        {
+          id: USERS_STATUS.NOT_ON_STAGE,
+          title: `${t('Not on stage')} (${audienceUserList.value.length})`,
+        },
+        {
+          id: USERS_STATUS.NOT_ENTER,
+          title: `${t('Not Entered')} (${inviteeList.value.length})`,
+        },
+      ];
+    }
+    return list;
+  });
+
+  const moreControlList = computed(() => [
     {
       title: roomStore.isScreenShareDisableForAllUser ?  t('All members can share screen') :  t('Screen sharing for host/admin only'),
       icon: roomStore.isScreenShareDisableForAllUser ? AllMembersShareScreenIcon : HostShareScreenIcon,
       func: toggleManageAllMember,
       type: ManageControlType.SCREEN,
     },
-  ]));
+  ]);
 
   const showManageAllUserDialog: Ref<boolean> = ref(false);
   const dialogContent: Ref<string> = ref('');
@@ -118,7 +180,7 @@ export default function useIndex() {
         }
         showManageAllUserDialog.value = true;
         dialogTitle.value = t('Is it turned on that only the host/admin can share the screen?');
-        dialogContent.value = t("Other member is sharing the screen is now, the member's sharing will be terminated after you turning on");
+        dialogContent.value = t('Other member is sharing the screen is now, the member\'s sharing will be terminated after you turning on');
         break;
       default:
         break;
@@ -209,10 +271,20 @@ export default function useIndex() {
     showMoreControl.value = !showMoreControl.value;
   }
 
+  const handleCallAllInvitee = () => {
+    const userIdList = inviteeList.value.map((item: any) => item.userId);
+    console.log(userIdList, 'miles-test-click');
+    roomService.conferenceInvitationManager.inviteUsers({ userIdList });
+    TUIMessage({
+      type: 'success',
+      message: t('Invitation sent, waiting for members to join.'),
+      duration: MESSAGE_DURATION.NORMAL,
+    });
+  };
+
   return {
     showApplyUserList,
     searchText,
-    handleInvite,
     t,
     toggleManageAllMember,
     doToggleManageAllMember,
@@ -232,5 +304,9 @@ export default function useIndex() {
     toggleClickMoreBtn,
     showMoreControl,
     moreControlList,
+    userStatusList,
+    userCurrentStatusId,
+    filteredUserStatusList,
+    handleCallAllInvitee,
   };
 }

@@ -25,6 +25,7 @@ import { JoinParams, RoomActionManager, StartParams } from './manager/roomAction
 import { WaterMark } from './function/waterMark';
 import { VirtualBackground } from './function/virtualBackground';
 import { ScheduleConferenceManager } from './manager/scheduleConferenceManager';
+import { ConferenceInvitationManager } from './manager/conferenceInvitationManager';
 import { ErrorHandler } from './function/errorHandler';
 
 const { t } = i18n.global;
@@ -41,7 +42,10 @@ export class RoomService implements IRoomService {
   public roomActionManager: RoomActionManager = new RoomActionManager(this);
   public waterMark = new WaterMark(this);
   public virtualBackground = new VirtualBackground(this);
-  public scheduleConferenceManager: ScheduleConferenceManager = new ScheduleConferenceManager(this);
+  public scheduleConferenceManager: ScheduleConferenceManager =
+    new ScheduleConferenceManager(this);
+  public conferenceInvitationManager: ConferenceInvitationManager =
+    new ConferenceInvitationManager(this);
   public errorHandler: ErrorHandler = new ErrorHandler(this);
 
   public roomEngine = roomEngine;
@@ -97,7 +101,8 @@ export class RoomService implements IRoomService {
     RoomService.instance.unBindRoomEngineEvents();
     RoomService.instance.waterMark.dispose();
     RoomService.instance.virtualBackground.dispose();
-    RoomService.instance.scheduleConference.dispose();
+    RoomService.instance.scheduleConferenceManager.dispose();
+    RoomService.instance.conferenceInvitationManager.dispose();
     RoomService.instance = undefined;
   }
 

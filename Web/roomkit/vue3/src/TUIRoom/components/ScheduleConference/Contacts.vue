@@ -6,7 +6,7 @@
     :append-to-body="true"
     :close-on-click-modal="false"
   >
-    <div class="contacts-container">
+    <div :class="['contacts-container', props.isMobile && 'h5']" @click.stop>
       <div class="contact">
         <div class="contact-search">
           <TuiInput
@@ -22,9 +22,17 @@
         <div class="contact-list">
           <div v-if="showList.length === 0 && searchValue" class="no-result">{{ t('No relevant members found') }}</div>
           <template v-else>
-            <div v-for="item in showList" :key="item.userInfo.userID" class="contact-list-item">
+            <div
+              v-for="item in showList"
+              :key="item.userInfo.userID"
+              :class="[
+                'contact-list-item',
+                item.disabled && 'contact-list-item-disabled',
+              ]"
+            >
               <TuiCheckbox
                 :model-value="item.selected"
+                :disabled="item.disabled"
                 class="contact-list-item-checkbox"
                 @input="item.selected = $event"
               >
@@ -74,18 +82,29 @@ import { useI18n } from '../../locales';
 const { t } = useI18n();
 
 interface Props {
-  visible: boolean,
-  contacts: any[],
-  selectedList?: any[],
+  visible: boolean;
+  contacts: any[];
+  selectedList?: any[];
+  isMobile?: boolean;
+  disabledList?: any[];
 }
 const props = defineProps<Props>();
 const emit = defineEmits(['input', 'confirm']);
 const isDialogVisible = ref(false);
 const searchValue = ref('');
 const updateContacts = () => {
-  contacts.value = props.contacts.map((user) => {
-    const index = props.selectedList?.findIndex(selectedUser => selectedUser.userId === user.userID);
-    return { selected: index !== undefined && index !== -1, userInfo: user };
+  contacts.value = props.contacts.map(user => {
+    const index = props.selectedList?.findIndex(
+      selectedUser => selectedUser.userId === user.userID
+    );
+    const disableUserIndex = props.disabledList?.findIndex(
+      disableUser => disableUser.userId === user.userID
+    );
+    return {
+      selected: index !== undefined && index !== -1,
+      disabled: disableUserIndex !== undefined && disableUserIndex !== -1,
+      userInfo: user,
+    };
   });
 };
 const updateVisible = (val: boolean) => {
@@ -93,11 +112,24 @@ const updateVisible = (val: boolean) => {
   emit('input', val);
 };
 
-const contacts = ref(props.contacts.map((user) => {
-  const index = props.selectedList?.findIndex(selectedUser => selectedUser.userId === user.userID);
-  return { selected: !!index && index !== -1, userInfo: user };
-}));
-const selectedContacts = computed(() => contacts.value.filter(user => user.selected));
+const contacts = ref(
+  props.contacts.map(user => {
+    const index = props.selectedList?.findIndex(
+      selectedUser => selectedUser.userId === user.userID
+    );
+    const disableUserIndex = props.disabledList?.findIndex(
+      disabledUser => disabledUser.userId === user.userID
+    );
+    return {
+      selected: !!index && index !== -1,
+      disabled: !!disableUserIndex && disableUserIndex !== -1,
+      userInfo: user,
+    };
+  })
+);
+const selectedContacts = computed(() =>
+  contacts.value.filter(user => user.selected)
+);
 const searchResult = ref<any>([]);
 const showList = computed(() => (searchValue.value ? searchResult.value : contacts.value));
 const searchContact = (v: any) => {
@@ -105,6 +137,7 @@ const searchContact = (v: any) => {
   searchResult.value = contacts.value
     .filter(item => item.userInfo.profile.nick.includes(v) || item.userInfo.userID.includes(v));
 };
+
 const removeSelectUser = (user: { selected: boolean; userInfo: any }) => {
   const index = contacts.value.findIndex(item => user.userInfo.userID === item.userInfo.userID);
   contacts.value[index].selected = false;
@@ -260,6 +293,111 @@ watch(isDialogVisible, (val) => {
     &-item:hover {
       background-color: #ecf5ff;
     }
+  }
+
+  .contact {
+    width: 50%;
+    padding-right: 1rem;
+    border-right: 1px solid #e5e5e5;
+
+    .contact-search {
+      &-input.focus {
+        .search-icon {
+          color: var(--active-color-1);
+        }
+      }
+    }
+
+    .contact-list {
+      height: 80%;
+
+      .no-result {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        font-size: 12px;
+        text-align: center;
+      }
+    }
+  }
+
+  .chosen {
+    width: 50%;
+    padding-left: 1rem;
+    overflow: hidden;
+
+    .chosen-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .chosen-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+
+      .chosen-footer-button {
+        width: 76px;
+        height: 26px;
+      }
+    }
+  }
+}
+
+.contact-list-item.contact-list-item-disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.chosen-list-item.chosen-list-item-disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.contacts-container.h5 {
+  flex-direction: column;
+  height: 100%;
+  max-height: none;
+
+  .contact {
+    width: 100%;
+    height: 100%;
+    padding-right: 0;
+    overflow: auto;
+    border-right: none;
+
+    .contact-list {
+      height: 100%;
+
+      &-item {
+        height: 46px;
+        line-height: 46px;
+        border-bottom: 1px solid rgba(221, 226, 235, 0.3);
+      }
+    }
+  }
+}
+
+.contact-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px 20px;
+  text-align: right;
+
+  .chosen-member {
+    font-size: 14px;
+    font-weight: 400;
+    color: #22262e;
+  }
+
+  .form-attendees:hover {
+    overflow: auto;
+  }
+
+  button {
+    padding: 6px 30px;
   }
 }
 </style>
